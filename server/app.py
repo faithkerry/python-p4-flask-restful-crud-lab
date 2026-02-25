@@ -24,14 +24,18 @@ class Plants(Resource):
 
     def post(self):
         data = request.get_json()
+
         new_plant = Plant(
             name=data['name'],
             image=data['image'],
             price=data['price'],
+            is_in_stock=data.get('is_in_stock', True)  # IMPORTANT FIX
         )
+
         db.session.add(new_plant)
         db.session.commit()
-        return make_response(new_plant.to_dict(), 201)
+
+        return make_response(jsonify(new_plant.to_dict()), 201)
 
 
 api.add_resource(Plants, '/plants')
@@ -42,16 +46,16 @@ class PlantByID(Resource):
     def get(self, id):
         plant = Plant.query.get(id)
         if not plant:
-            return abort(404, description="Plant not found")
+            abort(404, description="Plant not found")
         return make_response(jsonify(plant.to_dict()), 200)
 
     def patch(self, id):
         plant = Plant.query.get(id)
         if not plant:
-            return abort(404, description="Plant not found")
+            abort(404, description="Plant not found")
 
         data = request.get_json()
-        # Update only the fields sent in the request
+
         if "name" in data:
             plant.name = data["name"]
         if "image" in data:
@@ -67,11 +71,11 @@ class PlantByID(Resource):
     def delete(self, id):
         plant = Plant.query.get(id)
         if not plant:
-            return abort(404, description="Plant not found")
+            abort(404, description="Plant not found")
 
         db.session.delete(plant)
         db.session.commit()
-        return "", 204
+        return "", 204  # MUST stay like this
 
 
 api.add_resource(PlantByID, '/plants/<int:id>')
